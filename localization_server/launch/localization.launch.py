@@ -1,7 +1,8 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, LogInfo
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, TextSubstitution
 from launch_ros.actions import Node
+from launch.conditions import LaunchConfigurationEquals, LaunchConfigurationNotEquals
 import os
 from ament_index_python import get_package_share_directory
 
@@ -15,7 +16,7 @@ def generate_launch_description():
                                             default_value='warehouse_map_sim.yaml',
                                             description='Choose real vs simulated map')
     map_file_name_val = LaunchConfiguration('map_file')
-
+    
 
     # RVIZ node
     rviz_config = os.path.join(get_package_share_directory(package_name), 'rviz', 'rviz_localization.rviz')
@@ -41,7 +42,9 @@ def generate_launch_description():
                         executable='amcl',
                         name='amcl',
                         output='screen',
-                        parameters=[nav2_yaml])
+                        parameters=[{'use_sim_time': False},
+                                    nav2_yaml
+                                    ])
 
 
     # Lifecycle node
@@ -60,4 +63,13 @@ def generate_launch_description():
                                 map_file_name_arg,
                                 map_server_node,
                                 amcl_node,
-                                lifecycle_node])
+                                lifecycle_node,
+
+                                # LogInfo(condition=LaunchConfigurationEquals('map_file', 'warehouse_map_sim.yaml'),
+                                #     msg = "Default map!!"),
+    
+                                # LogInfo(condition=LaunchConfigurationNotEquals('map_file', 'warehouse_map_sim.yaml'),
+                                #     msg = "NOT Default map!!"),
+
+                                ])
+                                
