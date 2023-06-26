@@ -59,7 +59,7 @@ def generate_launch_description():
                     
 
 
-    return LaunchDescription([  rviz_node,
+    return LaunchDescription([  #rviz_node,
                                 map_file_name_arg,
                                 map_server_node,
                                 amcl_node,
