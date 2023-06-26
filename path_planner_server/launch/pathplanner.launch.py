@@ -66,6 +66,28 @@ def generate_launch_description():
             parameters=[recovery_file],
     )
 
+    # Nodes for keepout zones
+
+    filters_yaml = os.path.join(get_package_share_directory(
+        package_name), 'config', 'filters.yaml')
+
+    filter_mask_server_node = Node(
+    package='nav2_map_server',
+    executable='map_server',
+    name='filter_mask_server',
+    output='screen',
+    emulate_tty=True,
+    parameters=[filters_yaml])
+
+    costmap_filter_info_server_node = Node(
+        package='nav2_map_server',
+        executable='costmap_filter_info_server',
+        name='costmap_filter_info_server',
+        output='screen',
+        emulate_tty=True,
+        parameters=[filters_yaml])
+
+
 
 
 
@@ -79,7 +101,12 @@ def generate_launch_description():
                                         {'node_names': ['planner_server',
                                                         'controller_server',
                                                         'bt_navigator',
-                                                        'recoveries_server']}])
+                                                        'recoveries_server',
+                                                        'filter_mask_server',
+                                                        'costmap_filter_info_server'
+                                                        ]
+                                        }]
+    )
                     
 
 
@@ -88,5 +115,7 @@ def generate_launch_description():
                                 controller_node,
                                 bt_navigator_node,
                                 recovery_node,
+                                filter_mask_server_node,
+                                costmap_filter_info_server_node,
                                 lifecycle_node]
     )
