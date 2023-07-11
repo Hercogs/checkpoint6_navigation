@@ -33,7 +33,7 @@ def generate_launch_description():
                             executable='map_server',
                             name='map_server',
                             output='screen',
-                            parameters=[{'use_sim_time': True},
+                            parameters=[{'use_sim_time': False},
                                         {'yaml_filename': map_file_path}])
     
     # Localization
@@ -42,8 +42,7 @@ def generate_launch_description():
                         executable='amcl',
                         name='amcl',
                         output='screen',
-                        parameters=[{'use_sim_time': False},
-                                    nav2_yaml
+                        parameters=[nav2_yaml
                                     ])
 
 
@@ -52,14 +51,14 @@ def generate_launch_description():
                             executable='lifecycle_manager',
                             name='lifecycle_manager',
                             output='screen',
-                            parameters=[{'use_sim_time': True},
+                            parameters=[{'use_sim_time': False},
                                         {'autostart': True},
                                         {'node_names': ['map_server',
                                                         'amcl']}])
                     
 
 
-    return LaunchDescription([  #rviz_node,
+    return LaunchDescription([  rviz_node,
                                 map_file_name_arg,
                                 map_server_node,
                                 amcl_node,

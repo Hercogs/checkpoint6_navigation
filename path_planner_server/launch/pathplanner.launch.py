@@ -17,7 +17,7 @@ def generate_launch_description():
             executable='rviz2',
             name='rviz2_path',
             output='screen',
-            parameters=[{'use_sim_time': True}],
+            parameters=[{'use_sim_time': False}],
             arguments=['-d', rviz_config]
     )
 
@@ -95,14 +95,14 @@ def generate_launch_description():
                             executable='lifecycle_manager',
                             name='lifecycle_manager_path_planning',
                             output='screen',
-                            parameters=[{'use_sim_time': True},
+                            parameters=[{'use_sim_time': False},
                                         {'autostart': True},
                                         {'node_names': ['planner_server',
                                                         'controller_server',
                                                         'bt_navigator',
                                                         'recoveries_server',
-                                                        'filter_mask_server',
-                                                        'costmap_filter_info_server',
+                                                        #'filter_mask_server',
+                                                        #'costmap_filter_info_server',
                                                         ]
                                         }]
     )
@@ -114,7 +114,7 @@ def generate_launch_description():
                                 controller_node,
                                 bt_navigator_node,
                                 recovery_node,
-                                filter_mask_server_node,
-                                costmap_filter_info_server_node,
+                                #filter_mask_server_node,
+                                #costmap_filter_info_server_node,
                                 lifecycle_node]
     )

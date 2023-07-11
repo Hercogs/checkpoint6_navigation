@@ -33,12 +33,11 @@ class RobotState(enum.Enum):
 class NavigateRobot(Node):
     def __init__(self):
         super().__init__('navigator_node')
-
         self.positions = {
-                    'init_position':        [0.0, 0.0, 0.0],
+                    'init_position':        [-1.5, -1.8, 0.0],
                     #'init_position':        [5.7, -0.2, -1.57],
-                    'loading_position':     [5.7, -0.2, -1.57],
-                    'shipping_position':    [0.7, -3.1, 3.14]}
+                    'loading_position':     [4.2, -2.0, -1.57],
+                    'shipping_position':    [-0.8, -4.1, 3.14]}
 
         self.navigator = BasicNavigator()
 
@@ -430,7 +429,7 @@ class ApproachTable(Node):
 
         leg_len = 0
 
-        intenisty_threshold = 1000
+        intenisty_threshold = 3000
         for cnt, x in enumerate(self.laser_scan_data.intensities):
             if x > intenisty_threshold:
                 leg_len += 1
