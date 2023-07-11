@@ -1,0 +1,15 @@
+ros2 lifecycle set /global_costmap/global_costmap deactivate
+
+ros2 lifecycle nodes
+ros2 lifecycle get /global_costmap/global_costmap
+
+
+ros2 param get global_costmap/global_costmap footprint String value is: [ [0.21, 0.195], [0.21, -0.195], [-0.21, -0.195], [-0.21, 0.195] ]
+ros2 service call /global_costmap/global_costmap/get_parameters rcl_interfaces/srv/GetParameters "{names: ["footprint"]}"
+
+ros2 param set global_costmap/global_costmap footprint '[[0.40, 0.35], [0.35, -0.35], [-0.35, -0.35], [-0.35, 0.37]]'
+
+ros2 topic pub --once /global_costmap/footprint geometry_msgs/msg/Polygon "{points: [{x: 0.5, y: 0.5}, {x: 0.5, y: -0.5}, {x: -0.5, y: -0.5}, {x: -0.5, y: 0.5} ]}"
+
+
+

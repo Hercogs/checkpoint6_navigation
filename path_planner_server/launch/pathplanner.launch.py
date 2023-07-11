@@ -39,8 +39,7 @@ def generate_launch_description():
             executable='controller_server',
             name='controller_server',
             output='screen',
-            parameters=[{'use_sim_time': True},
-                            control_config_file],
+            parameters=[control_config_file],
             remappings=[
                         ('cmd_vel', 'robot/cmd_vel'),
             ]
@@ -103,7 +102,7 @@ def generate_launch_description():
                                                         'bt_navigator',
                                                         'recoveries_server',
                                                         'filter_mask_server',
-                                                        'costmap_filter_info_server'
+                                                        'costmap_filter_info_server',
                                                         ]
                                         }]
     )

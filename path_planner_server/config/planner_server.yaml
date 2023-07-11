@@ -5,7 +5,7 @@ planner_server:
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
-      tolerance: 0.5
+      tolerance: 0.7
       use_astar: false
       allow_unknown: true
 
@@ -18,7 +18,7 @@ global_costmap:
       robot_base_frame: robot_base_link
       use_sim_time: True
       #robot_radius: 0.25
-      footprint: '[[0.35, 0.35], [0.35, -0.35], [-0.35, -0.35], [-0.35, 0.35]]'
+      footprint: '[[0.3, 0.3], [0.3, -0.3], [-0.3, -0.3], [-0.3, 0.3]]'
       resolution: 0.05
       track_unknown_space: true
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
@@ -41,8 +41,9 @@ global_costmap:
           obstacle_min_range: 0.0
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0
-        inflation_radius: 0.35
+        cost_scaling_factor: 5.0
+        #inflation_radius: 0.25
+        inflation_radius: 0.5
       always_send_full_costmap: True
       filters: ["keepout_filter"]
       keepout_filter:
