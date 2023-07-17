@@ -56,11 +56,10 @@ controller_server:
       # If use footprint:
       # critics: ["RotateToGoal", "Oscillation", "ObstacleFootprint", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
       critics: ["RotateToGoal", "Oscillation", "ObstacleFootprint", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
-      # critics: ["RotateToGoal", "Oscillation", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
       #BaseObstacle.scale: 0.02
       #PathAlign.scale: 32.0
       ObstacleFootprint.scale: 0.02
-      PathAlign.scale: 3.0
+      PathAlign.scale: 2.0
       PathAlign.forward_point_distance: 0.1
       GoalAlign.scale: 24.0
       GoalAlign.forward_point_distance: 0.1
@@ -83,7 +82,7 @@ local_costmap:
       height: 2
       resolution: 0.05
       # robot_radius: 0.15
-      footprint: '[[0.3, 0.3], [0.3, -0.3], [-0.3, -0.3], [-0.3, 0.3]]'
+      footprint: '[[0.25, 0.25], [0.25, -0.25], [-0.25, -0.25], [-0.25, 0.25]]'
       plugins: ["voxel_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"

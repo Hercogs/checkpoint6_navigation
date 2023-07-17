@@ -13,7 +13,7 @@ def generate_launch_description():
 
     # Parmaters
     map_file_name_arg = DeclareLaunchArgument('map_file',
-                                            default_value='warehouse_map_sim.yaml',
+                                            default_value='warehouse_map_real.yaml',
                                             description='Choose real vs simulated map')
     map_file_name_val = LaunchConfiguration('map_file')
     

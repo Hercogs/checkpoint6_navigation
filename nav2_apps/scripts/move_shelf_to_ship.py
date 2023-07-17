@@ -9,10 +9,9 @@ from rclpy.callback_groups import ReentrantCallbackGroup
 
 from geometry_msgs.msg import PoseStamped, TransformStamped, Point, Twist, Polygon, Point32
 from std_msgs.msg import Empty
-from lifecycle_msgs.srv import ChangeState
 from sensor_msgs.msg import LaserScan
 from std_srvs.srv import Trigger
-from tf_transformations  import euler_from_quaternion, quaternion_from_euler
+from tf_transformations  import quaternion_from_euler
 
 from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
 
@@ -34,10 +33,9 @@ class NavigateRobot(Node):
     def __init__(self):
         super().__init__('navigator_node')
         self.positions = {
-                    'init_position':        [-1.5, -1.8, 0.0],
-                    #'init_position':        [5.7, -0.2, -1.57],
-                    'loading_position':     [4.2, -2.0, -1.57],
-                    'shipping_position':    [-0.8, -4.1, 3.14]}
+                    'init_position':        [0.0, 0.0, 0.0],
+                    'loading_position':     [4.45, -0.5, -1.57],
+                    'shipping_position':    [0.95, -2.6, 3.14]}
 
         self.navigator = BasicNavigator()
 
@@ -51,37 +49,36 @@ class NavigateRobot(Node):
 
         self.state = RobotState.INITIALIZED
 
-
         self.timer = self.create_timer(1, self.timer_clb, callback_group=ReentrantCallbackGroup())
 
         # Approach client
         self.approach_table_cli = self.create_client(Trigger, '/approach_shelf')
+
+        # Publishers, subscribers
         self.pub_lift_table = self.create_publisher(Empty, '/elevator_up', 3)
         self.pub_down_table = self.create_publisher(Empty, '/elevator_down', 3)
         self.pub_global_footprint = self.create_publisher(Polygon, '/global_costmap/footprint', 3)
         self.pub_local_footprint = self.create_publisher(Polygon, '/local_costmap/footprint', 3)
         self.speed_pub = self.create_publisher(Twist, 'robot/cmd_vel', 1)
-        #self.set_lifecycle()
-
     
-    def set_lifecycle(self):
-        self.get_logger().info("Set lifecycle for global_costmap")
-        srv = self.create_client(ChangeState, '/global_costmap/global_costmap/change_state')
-        if(not srv.wait_for_service(timeout_sec = 1.0)):
-            self.get_logger().error("Service not available")
+    
+    def set_initial_position(self):
+        initial_pose = PoseStamped()
+        initial_pose.header.frame_id = 'map'
+        initial_pose.header.stamp = self.navigator.get_clock().now().to_msg()
+        initial_pose.pose.position.x = self.positions['init_position'][0]
+        initial_pose.pose.position.y = self.positions['init_position'][1]
 
-        req = ChangeState.Request()
-        req.transition.id = 1
-        req.transition.id = 3
-        future_result = srv.call_async(req)
-        rclpy.spin_until_future_complete(self, future_result, timeout_sec=2.0)
-        status = future_result.result().success
-        if status != True:
-            self.get_logger().error("Err srv")
-        else:
-            self.get_logger().info("Status ok")
+        q = quaternion_from_euler(0, 0, self.positions['init_position'][2])
 
-  
+        initial_pose.pose.orientation.x = q[0]
+        initial_pose.pose.orientation.y = q[1]
+        initial_pose.pose.orientation.z = q[2]
+        initial_pose.pose.orientation.w = q[3]
+
+        self.navigator.setInitialPose(initial_pose)
+
+    # As state machine
     def timer_clb(self) -> None:
         self.timer.cancel()
         print('Robot state: ' + str(self.state))
@@ -94,7 +91,10 @@ class NavigateRobot(Node):
             self.go_to_position(position="shipping_position")
         elif (self.state == RobotState.POSITION_SHIPPING):
             # Put down table
-            self.pub_down_table.publish(Empty())
+
+            ## NOT working
+            #self.pub_down_table.publish(Empty())
+
             # CHange robot footprint size
             msg = Polygon()
 
@@ -118,11 +118,15 @@ class NavigateRobot(Node):
             self.create_rate(0.5).sleep()
 
             # Move robot bit to back
+            time = 0
             msg = Twist()
-            msg.linear.x = 0.25
-            msg.angular.z = 0.0
-            self.speed_pub.publish(msg)
-            self.create_rate(1.0 / 3.5).sleep()
+            while(time < 3.5):
+                msg.linear.x = -0.25
+                msg.angular.z = 0.0
+                self.speed_pub.publish(msg)
+                self.create_rate(10).sleep()
+                time +=0.1
+
             msg.linear.x = -0.0
             msg.angular.z = 0.0
             self.speed_pub.publish(msg)
@@ -136,7 +140,7 @@ class NavigateRobot(Node):
             self.get_logger().error("Got error! Restart node")
         else:
             pass
-
+    
 
     def approach_table(self):
         if (not self.approach_table_cli.wait_for_service(timeout_sec=1.0)):
@@ -159,7 +163,8 @@ class NavigateRobot(Node):
             self.get_logger().info("Robot is under table")
 
             # Lift table
-            self.pub_lift_table.publish(Empty())
+            ## Not working
+            #self.pub_lift_table.publish(Empty())
 
             # Change footprint
             msg = Polygon()
@@ -170,64 +175,41 @@ class NavigateRobot(Node):
             p4 = Point32()
             msg.points = [p1, p2, p3, p4]
 
-            p1.x = 0.48
+            p1.x = 0.45
             p1.y = 0.39
-            p2.x = 0.48
+            p2.x = 0.45
             p2.y = -0.39
-            p3.x = -0.48
+            p3.x = -0.45
             p3.y = -0.39
-            p4.x = -0.48
+            p4.x = -0.45
             p4.y = 0.39
             self.pub_local_footprint.publish(msg)
             self.pub_global_footprint.publish(msg)
 
             self.create_rate(1.0).sleep()
 
-            # Move robot back a bit
-            msg = Twist()
-            msg.linear.x = -0.20
-            msg.angular.z = 0.0
-            self.speed_pub.publish(msg)
-            self.create_rate(1.0 / 1.8).sleep()       
-
-            # msg = Twist()
-            # msg.linear.x = -0.20
-            # msg.angular.z = 0.1
-            # self.speed_pub.publish(msg)
-            # self.create_rate(1.0 / 1.8).sleep()
-
-            # msg.linear.x = -0.18
-            # msg.angular.z = -0.25
-            # self.speed_pub.publish(msg)
-            # self.create_rate(1.0 / 2.0).sleep()
-
-            # msg.linear.x = 0.0
-            # msg.angular.z = 0.0
-            # self.speed_pub.publish(msg)
-            # self.create_rate(1.0).sleep()
-
             self.navigator.clearAllCostmaps()
      
         self.state = RobotState(self.state.value + 1)
         self.create_rate(0.5).sleep()
+
+        self.get_logger().warn(f'Because of cannot lift table. robot moves backward and replan track')
+
+        time = 0
+        msg = Twist()
+        while(time < 10):
+            msg.linear.x = -0.13
+            msg.angular.z = 0.0
+            if time > 5.5:
+                msg.angular.z = 0.1
+            if time > 7.5:
+                msg.angular.z = -0.09
+            self.speed_pub.publish(msg)
+            self.create_rate(10).sleep()
+            time +=0.1
+        self.get_logger().info(f'Finished going backwards')
+
         self.timer.reset()
-
-    
-    def set_initial_position(self):
-        initial_pose = PoseStamped()
-        initial_pose.header.frame_id = 'map'
-        initial_pose.header.stamp = self.navigator.get_clock().now().to_msg()
-        initial_pose.pose.position.x = self.positions['init_position'][0]
-        initial_pose.pose.position.y = self.positions['init_position'][1]
-
-        q = quaternion_from_euler(0, 0, self.positions['init_position'][2])
-
-        initial_pose.pose.orientation.x = q[0]
-        initial_pose.pose.orientation.y = q[1]
-        initial_pose.pose.orientation.z = q[2]
-        initial_pose.pose.orientation.w = q[3]
-
-        self.navigator.setInitialPose(initial_pose)
     
     def go_to_position(self, position):
         target_pose = PoseStamped()
@@ -316,7 +298,7 @@ class ApproachTable(Node):
         target_frame = 'robot_base_link'
         ref_frame = 'cart_frame'
     
-        scale_forward_speed = 0.3
+        scale_forward_speed = 0.1
         scale_rotation = 0.8
 
         distance = 99.0
@@ -324,7 +306,7 @@ class ApproachTable(Node):
 
         msg = Twist()
 
-        while(distance > 0.15):
+        while(distance > 0.47):
             try:
                 t = self.tf_buffer.lookup_transform(
                     target_frame,
@@ -345,29 +327,40 @@ class ApproachTable(Node):
                         t.transform.translation.y,
                         t.transform.translation.x)
             
-            msg.linear.x = scale_forward_speed * distance + 0.15
-            msg.angular.z = scale_rotation * angle + (0.2 * angle/abs(angle))
+            msg.linear.x = scale_forward_speed * distance + 0.05
+            msg.angular.z = scale_rotation * angle + (0.05 * angle/abs(angle))
 
             self.speed_pub.publish(msg)
+            self.create_rate(15).sleep()
+            print(f'Dst: {distance}')
+            
+        self.get_logger().info(f'Finished moving to TF')
+        msg.linear.x = 0.0
+        msg.angular.z = 0.0
+        self.speed_pub.publish(msg)
+        self.create_rate(1.0).sleep()
+
+
+        time = 0
+        while(time < 0.2):
+            # Now move right a bit
+            msg.linear.x = 0.0
+            msg.angular.z = -0.1
+            self.speed_pub.publish(msg)
             self.create_rate(10).sleep()
+            time +=0.1
+        self.get_logger().info(f'Finished turning')
         
-        msg.linear.x = 0.0
-        msg.angular.z = 0.0
-        self.speed_pub.publish(msg)
-        self.create_rate(1/2.0).sleep()
-
-        # Now move right a bit
-        msg.linear.x = 0.0
-        msg.angular.z = -0.1
-        self.speed_pub.publish(msg)
-        self.create_rate(1/2.0).sleep()
         
-        # Now move straig a bit
-        msg.linear.x = scale_forward_speed
-        msg.angular.z = 0.0
-        self.speed_pub.publish(msg)
-
-        self.create_rate(1/2.8).sleep()
+        # # Now move straig a bit
+        time = 0
+        while(time < 6.5):
+            msg.linear.x = 0.115
+            msg.angular.z = 0.0
+            self.speed_pub.publish(msg)
+            self.create_rate(10).sleep()
+            time +=0.1
+        self.get_logger().info(f'Finished going froward')
 
         msg.linear.x = 0.0
         msg.angular.z = 0.0

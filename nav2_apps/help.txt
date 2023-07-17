@@ -12,4 +12,6 @@ ros2 param set global_costmap/global_costmap footprint '[[0.40, 0.35], [0.35, -0
 ros2 topic pub --once /global_costmap/footprint geometry_msgs/msg/Polygon "{points: [{x: 0.5, y: 0.5}, {x: 0.5, y: -0.5}, {x: -0.5, y: -0.5}, {x: -0.5, y: 0.5} ]}"
 
 
+TODO:
 
+Change footprint sizes, generate new map

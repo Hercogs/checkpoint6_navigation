@@ -101,8 +101,8 @@ def generate_launch_description():
                                                         'controller_server',
                                                         'bt_navigator',
                                                         'recoveries_server',
-                                                        #'filter_mask_server',
-                                                        #'costmap_filter_info_server',
+                                                        'filter_mask_server',
+                                                        'costmap_filter_info_server',
                                                         ]
                                         }]
     )
@@ -114,7 +114,7 @@ def generate_launch_description():
                                 controller_node,
                                 bt_navigator_node,
                                 recovery_node,
-                                #filter_mask_server_node,
-                                #costmap_filter_info_server_node,
+                                filter_mask_server_node,
+                                costmap_filter_info_server_node,
                                 lifecycle_node]
     )
